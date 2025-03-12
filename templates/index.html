@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dog Breed Classifier</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-image: url('https://i.imgur.com/TL7dRMR.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        
+        .header {
+            background-color: #4285f4;
+            color: white;
+            padding: 20px;
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .subheader {
+            background-color: #8a2be2;
+            color: white;
+            padding: 15px;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        
+        .upload-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px auto;
+            max-width: 800px;
+        }
+        
+        .file-input-container {
+            background-color: #4285f4;
+            padding: 15px;
+            border-radius: 8px;
+            width: 70%;
+            margin-bottom: 20px;
+        }
+        
+        .file-input {
+            margin-bottom: 10px;
+        }
+        
+        .upload-btn {
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        .upload-btn:hover {
+            background-color: #3b78e7;
+        }
+        
+        .result-container {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            width: 70%;
+        }
+        
+        img {
+            max-width: 100%;
+            height: auto;
+            margin-top: 15px;
+            border-radius: 8px;
+        }
+        
+        #output-image-container {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">Dog Breed Classifier Project Using Flask</div>
+    <div class="subheader">Classification Using Deep Learning</div>
+    
+    <div class="upload-container">
+        <div class="file-input-container">
+            <input type="file" id="imageInput" accept="image/*" class="file-input">
+            <div id="model-selection">
+                <select id="modelSelect">
+                    <option value="ResNet50">ResNet50</option>
+                    <option value="YOLOv8">YOLOv8</option>
+                </select>
+            </div>
+        </div>
+        <button id="uploadBtn" class="upload-btn">Upload and Detect Dog</button>
+        
+        <div class="result-container" id="output" style="display: none;">
+            <h3>Result:</h3>
+            <p id="label"></p>
+            <div id="output-image-container">
+                <img id="outputImage" style="display:none;">
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        $(document).ready(function() {
+            // Show the output container when an image is selected
+            $('#imageInput').change(function() {
+                if ($(this).val()) {
+                    // Optional: Preview the selected image
+                    const file = this.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            $('#outputImage').attr('src', e.target.result).show();
+                            $('#output').show();
+                            $('#label').text('Ready to classify. Click "Upload and Detect Dog" to proceed.');
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                }
+            });
+            
+            // Upload and classify the image
+            $('#uploadBtn').click(function() {
+                uploadImage();
+            });
+        });
+        
+        function uploadImage() {
+            var fileInput = document.getElementById('imageInput');
+            
+            if (!fileInput.files[0]) {
+                alert('Please select an image first.');
+                return;
+            }
+            
+            var modelSelect = document.getElementById('modelSelect');
+            var formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('model', modelSelect.value);
+            
+            // Show loading state
+            $('#label').text('Processing...');
+            
+            $.ajax({
+                url: '/predict',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    $('#output').show();
+                    
+                    if (response.model == '1') {
+                        $('#label').text('Classified as: ' + response.label);
+                        // Optional: Show the original image
+                        const file = fileInput.files[0];
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                $('#outputImage').attr('src', e.target.result).show();
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    } else if (response.model == '2') {
+                        $('#label').text('' + response.label);
+                        $('#outputImage').attr('src', 'data:image/png;base64,' + response.output_image).show();
+                    }
+                },
+                error: function() {
+                    $('#label').text('Error processing the image.');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

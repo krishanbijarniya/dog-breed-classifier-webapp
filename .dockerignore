@@ -1,0 +1,27 @@
+# Python-generated files
+__pycache__/
+logs/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.python-version
+mlruns/
+# Virtual environments
+.venv
+myenv/
+venv/
+
+# Environment file
+.env
+
+# Ruff cache
+.ruff_cache/
+
+.DS_Store
+
+.git
+*.ipynb
+*.log
+data_analysis/

@@ -1,0 +1,7 @@
+__pycache__/
+venv/
+flaskenv/
+app/
+yolo8.pt
+ResNet50_model.h5
+uploads/
